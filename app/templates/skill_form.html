@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if skill else 'Add' }} Skill{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ 'Edit' if skill else 'Add' }} Skill</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label>Skill Name</label>
+                            <input type="text" name="name" class="form-control" value="{{ skill.name if skill else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Category</label>
+                            <select name="category" class="form-control">
+                                <option value="technical" {% if skill and skill.category == 'technical' %}selected{% endif %}>Technical</option>
+                                <option value="soft" {% if skill and skill.category == 'soft' %}selected{% endif %}>Soft Skills</option>
+                                <option value="language" {% if skill and skill.category == 'language' %}selected{% endif %}>Language</option>
+                                <option value="other" {% if skill and skill.category == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Proficiency Level</label>
+                            <select name="proficiency" class="form-control">
+                                <option value="1" {% if skill and skill.proficiency == 1 %}selected{% endif %}>Beginner</option>
+                                <option value="2" {% if skill and skill.proficiency == 2 %}selected{% endif %}>Intermediate</option>
+                                <option value="3" {% if skill and skill.proficiency == 3 %}selected{% endif %}>Proficient</option>
+                                <option value="4" {% if skill and skill.proficiency == 4 %}selected{% endif %}>Advanced</option>
+                                <option value="5" {% if skill and skill.proficiency == 5 %}selected{% endif %}>Expert</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Skill</button>
+                        <a href="{{ url_for('cv.list_skills') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Work Experience{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Work Experience</h1>
+        <a href="{{ url_for('cv.add_experience') }}" class="btn btn-primary">Add Experience</a>
+    </div>
+    
+    {% if experiences %}
+        {% for exp in experiences %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>{{ exp.position }} at {{ exp.company }}</h5>
+                    <p class="text-muted">{{ exp.start_date }} - {% if exp.current %}Present{% else %}{{ exp.end_date }}{% endif %}</p>
+                    <p>{{ exp.description[:200] }}{% if exp.description|length > 200 %}...{% endif %}</p>
+                    <a href="{{ url_for('cv.edit_experience', exp_id=exp.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{{ url_for('cv.delete_experience', exp_id=exp.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No work experience added yet. <a href="{{ url_for('cv.add_experience') }}">Add your first experience</a></p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if pub else 'Add' }} Publication{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ 'Edit' if pub else 'Add' }} Publication</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label>Publication Type</label>
+                            <select name="pub_type" class="form-control" required>
+                                <option value="conference" {% if pub and pub.pub_type == 'conference' %}selected{% endif %}>Conference Proceedings</option>
+                                <option value="book_chapter" {% if pub and pub.pub_type == 'book_chapter' %}selected{% endif %}>Book Chapter</option>
+                                <option value="journal" {% if pub and pub.pub_type == 'journal' %}selected{% endif %}>Journal Article</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ pub.title if pub else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Authors</label>
+                            <input type="text" name="authors" class="form-control" value="{{ pub.authors if pub else '' }}" placeholder="e.g., Reddy, P., Pratt, D.D.">
+                        </div>
+                        <div class="mb-3">
+                            <label>Year</label>
+                            <input type="text" name="year" class="form-control" value="{{ pub.year if pub else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>Journal/Conference Name</label>
+                            <input type="text" name="journal" class="form-control" value="{{ pub.journal if pub else '' }}" placeholder="Journal name or Conference name">
+                        </div>
+                        <div class="mb-3">
+                            <label>Publisher</label>
+                            <input type="text" name="publisher" class="form-control" value="{{ pub.publisher if pub else '' }}">
+                        </div>
+                        <div class="mb-3">
+                            <label>DOI (Digital Object Identifier)</label>
+                            <input type="text" name="doi" class="form-control" value="{{ pub.doi if pub else '' }}" placeholder="e.g., 10.1234/example">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <a href="{{ url_for('cv.list_publications') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

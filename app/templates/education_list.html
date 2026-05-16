@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Education{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Education</h1>
+        <a href="{{ url_for('cv.add_education') }}" class="btn btn-primary">Add Education</a>
+    </div>
+    
+    {% if education %}
+        {% for edu in education %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>{{ edu.degree }}{% if edu.field %} in {{ edu.field }}{% endif %}</h5>
+                    <p class="text-muted">{{ edu.institution }}</p>
+                    <p>{{ edu.start_year }} - {% if edu.end_year %}{{ edu.end_year }}{% else %}Present{% endif %}</p>
+                    {% if edu.description %}
+                        <p>{{ edu.description[:200] }}{% if edu.description|length > 200 %}...{% endif %}</p>
+                    {% endif %}
+                    <a href="{{ url_for('cv.delete_education', edu_id=edu.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            No education entries yet. <a href="{{ url_for('cv.add_education') }}">Add your education</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

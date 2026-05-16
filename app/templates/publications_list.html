@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Publications{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Publications</h1>
+        <a href="{{ url_for('cv.add_publication') }}" class="btn btn-primary">Add Publication</a>
+    </div>
+    
+    {% if publications %}
+        {% for pub in publications %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>{{ pub.title }}</h5>
+                    <p class="text-muted">{{ pub.authors or 'Authors not specified' }}</p>
+                    <p><strong>Year:</strong> {{ pub.year or 'N/A' }}</p>
+                    {% if pub.journal %}
+                        <p><strong>Journal:</strong> {{ pub.journal }}</p>
+                    {% endif %}
+                    {% if pub.conference %}
+                        <p><strong>Conference:</strong> {{ pub.conference }}</p>
+                    {% endif %}
+                    {% if pub.doi %}
+                        <p><strong>DOI:</strong> {{ pub.doi }}</p>
+                    {% endif %}
+                    <a href="{{ url_for('cv.delete_publication', pub_id=pub.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            No publications added yet. <a href="{{ url_for('cv.add_publication') }}">Add your first publication</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

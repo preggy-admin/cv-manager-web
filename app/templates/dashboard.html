@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Welcome, {{ profile.name or current_user.username }}!</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Profile Completion</h5>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: {{ stats.completion_pct }}%"></div>
+                    </div>
+                    <p class="text-muted">{{ "%.1f"|format(stats.completion_pct) }}% complete</p>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-briefcase fa-3x text-primary"></i>
+                            <h3 class="mt-2">{{ stats.work_count }}</h3>
+                            <p>Work Experiences</p>
+                            <a href="{{ url_for('cv.list_experience') }}" class="btn btn-sm btn-outline-primary">Manage</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-graduation-cap fa-3x text-success"></i>
+                            <h3 class="mt-2">{{ stats.education_count }}</h3>
+                            <p>Education</p>
+                            <a href="{{ url_for('cv.list_education') }}" class="btn btn-sm btn-outline-success">Manage</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-code fa-3x text-info"></i>
+                            <h3 class="mt-2">{{ stats.skills_count }}</h3>
+                            <p>Skills</p>
+                            <a href="{{ url_for('cv.list_skills') }}" class="btn btn-sm btn-outline-info">Manage</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-book fa-3x text-warning"></i>
+                            <h3 class="mt-2">{{ stats.publications_count }}</h3>
+                            <p>Publications</p>
+                            <a href="{{ url_for('cv.list_publications') }}" class="btn btn-sm btn-outline-warning">Manage</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-language fa-3x text-secondary"></i>
+                            <h3 class="mt-2">{{ stats.languages_count|default(0) }}</h3>
+                            <p>Languages</p>
+                            <a href="{{ url_for('cv.list_languages') }}" class="btn btn-sm btn-outline-secondary">Manage</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-medal fa-3x text-danger"></i>
+                            <h3 class="mt-2">{{ stats.badges_count|default(0) }}</h3>
+                            <p>Badges</p>
+                            <a href="{{ url_for('cv.list_badges') }}" class="btn btn-sm btn-outline-danger">Manage</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-certificate fa-3x text-purple"></i>
+                            <h3 class="mt-2">{{ stats.certifications_count }}</h3>
+                            <p>Certifications</p>
+                            <a href="{{ url_for('cv.list_certifications') }}" class="btn btn-sm btn-outline-purple">Manage</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('cv.edit_profile') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-user-edit"></i> Edit Profile
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('cv.generate_cv') }}" class="btn btn-success w-100">
+                                <i class="fas fa-download"></i> Generate CV
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('job.match') }}" class="btn btn-info w-100">
+                                <i class="fas fa-search"></i> Match Job
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-purple {
+        color: #6f42c1;
+        border-color: #6f42c1;
+    }
+    .btn-outline-purple:hover {
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+        color: white;
+    }
+    .text-purple {
+        color: #6f42c1;
+    }
+</style>
+{% endblock %}

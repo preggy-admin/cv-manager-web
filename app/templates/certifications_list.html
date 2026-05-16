@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Certifications{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Certifications</h1>
+        <a href="{{ url_for('cv.add_certification') }}" class="btn btn-primary">Add Certification</a>
+    </div>
+    
+    {% if certifications %}
+        {% for cert in certifications %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>{{ cert.name }}</h5>
+                    <p class="text-muted">{{ cert.issuer or 'No issuer specified' }}</p>
+                    <p>Year: {{ cert.year or 'N/A' }}</p>
+                    {% if cert.credential_id %}
+                        <p>Credential ID: {{ cert.credential_id }}</p>
+                    {% endif %}
+                    <a href="{{ url_for('cv.delete_certification', cert_id=cert.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-info">
+            No certifications added yet. <a href="{{ url_for('cv.add_certification') }}">Add your first certification</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

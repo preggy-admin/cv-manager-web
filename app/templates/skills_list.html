@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Skills{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Skills</h1>
+        <a href="{{ url_for('cv.add_skill') }}" class="btn btn-primary">Add Skill</a>
+    </div>
+    
+    {% if skills %}
+        <div class="row">
+            {% for skill in skills %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>{{ skill.name }}</h5>
+                            <p class="text-muted">Category: {{ skill.category or 'General' }}</p>
+                            <div class="mb-2">
+                                <label>Proficiency:</label>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success" style="width: {{ (skill.proficiency or 3) * 20 }}%"></div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('cv.delete_skill', skill_id=skill.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            No skills added yet. <a href="{{ url_for('cv.add_skill') }}">Add your first skill</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

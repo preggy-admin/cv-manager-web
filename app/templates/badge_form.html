@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if badge else 'Add' }} Badge{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-medal"></i> {{ 'Edit' if badge else 'Add' }} Badge</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label>Badge/Certification Name</label>
+                            <input type="text" name="name" class="form-control" 
+                                   value="{{ badge.name if badge else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Issuing Organization</label>
+                            <input type="text" name="issuer" class="form-control" 
+                                   value="{{ badge.issuer if badge else '' }}"
+                                   placeholder="e.g., Google, Microsoft, Coursera">
+                        </div>
+                        <div class="mb-3">
+                            <label>Date Earned</label>
+                            <input type="text" name="date_earned" class="form-control" 
+                                   value="{{ badge.date_earned if badge else '' }}"
+                                   placeholder="e.g., 2024, March 2024">
+                        </div>
+                        <div class="mb-3">
+                            <label>Badge Image URL (optional)</label>
+                            <input type="url" name="badge_url" class="form-control" 
+                                   value="{{ badge.badge_url if badge else '' }}"
+                                   placeholder="https://example.com/badge.png">
+                        </div>
+                        <div class="mb-3">
+                            <label>Category</label>
+                            <select name="category" class="form-control">
+                                <option value="technical" {% if badge and badge.category == 'technical' %}selected{% endif %}>Technical</option>
+                                <option value="certification" {% if badge and badge.category == 'certification' %}selected{% endif %}>Certification</option>
+                                <option value="achievement" {% if badge and badge.category == 'achievement' %}selected{% endif %}>Achievement</option>
+                                <option value="soft_skill" {% if badge and badge.category == 'soft_skill' %}selected{% endif %}>Soft Skill</option>
+                                <option value="language" {% if badge and badge.category == 'language' %}selected{% endif %}>Language</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Description (optional)</label>
+                            <textarea name="description" class="form-control" rows="3" 
+                                      placeholder="Describe this badge or achievement">{{ badge.description if badge else '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Badge
+                        </button>
+                        <a href="{{ url_for('cv.list_badges') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

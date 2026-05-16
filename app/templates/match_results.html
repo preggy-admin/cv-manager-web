@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Match Results{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4>Match Analysis Results</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h3>Overall Score</h3>
+                            <div class="display-1 text-primary">{{ match_analysis.overall_score }}%</div>
+                        </div>
+                        <div class="col-md-8">
+                            <h4>Recommendations</h4>
+                            <p><strong>Fit Assessment:</strong> {{ recommendations.fit_assessment }}</p>
+                            {% if recommendations.strengths %}
+                                <h5>Strengths:</h5>
+                                <ul>
+                                {% for strength in recommendations.strengths %}
+                                    <li>{{ strength }}</li>
+                                {% endfor %}
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4>Detailed Analysis</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Category</th>
+                            <th>Score</th>
+                        </tr>
+                        <tr>
+                            <td>Skill Match</td>
+                            <td>{{ match_analysis.skill_match }}%</td>
+                        </tr>
+                        <tr>
+                            <td>Experience Match</td>
+                            <td>{{ match_analysis.experience_match }}%</td>
+                        </tr>
+                    </table>
+                    
+                    {% if recommendations.improvement_areas %}
+                        <h5>Areas for Improvement:</h5>
+                        <ul>
+                        {% for area in recommendations.improvement_areas %}
+                            <li>{{ area }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('job.match') }}" class="btn btn-primary">Analyze Another Job</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

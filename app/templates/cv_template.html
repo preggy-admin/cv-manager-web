@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CV - {{ cv.personal_info.name or 'Your Name' }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+            margin-top: 25px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .contact {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .job-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .company {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .date {
+            float: right;
+            color: #95a5a6;
+        }
+        ul {
+            margin-top: 5px;
+        }
+        .badge-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .badge-item {
+            text-align: center;
+            width: 120px;
+        }
+        .badge-item img {
+            max-width: 80px;
+            max-height: 80px;
+        }
+        .badge-icon {
+            font-size: 48px;
+            color: #f39c12;
+        }
+        .badge-name {
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .badge-issuer {
+            font-size: 10px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ cv.personal_info.name or 'Your Name' }}</h1>
+        <div class="contact">
+            {% if cv.personal_info.title %}{{ cv.personal_info.title }}<br>{% endif %}
+            {% if cv.personal_info.email %}Email: {{ cv.personal_info.email }}<br>{% endif %}
+            {% if cv.personal_info.phone %}Phone: {{ cv.personal_info.phone }}<br>{% endif %}
+            {% if cv.personal_info.location %}Location: {{ cv.personal_info.location }}{% endif %}
+        </div>
+    </div>
+    
+    {% if cv.personal_info.summary %}
+    <div class="section">
+        <h2>Professional Summary</h2>
+        <p>{{ cv.personal_info.summary }}</p>
+    </div>
+    {% endif %}
+    
+    {% if cv.work_experience %}
+    <div class="section">
+        <h2>Work Experience</h2>
+        {% for exp in cv.work_experience %}
+            <div>
+                <div class="job-title">{{ exp.position }}</div>
+                <div class="company">{{ exp.company }} <span class="date">{{ exp.start_date }} - {% if exp.current %}Present{% else %}{{ exp.end_date }}{% endif %}</span></div>
+                {% if exp.description %}
+                    <p>{{ exp.description|replace('\n', '<br>')|safe }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if cv.education %}
+    <div class="section">
+        <h2>Education</h2>
+        {% for edu in cv.education %}
+            <div>
+                <div class="job-title">{{ edu.degree }}{% if edu.field %} in {{ edu.field }}{% endif %}</div>
+                <div class="company">{{ edu.institution }} <span class="date">{{ edu.start_year }} - {% if edu.end_year %}{{ edu.end_year }}{% else %}Present{% endif %}</span></div>
+                {% if edu.description %}
+                    <p>{{ edu.description }}</p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    {% if cv.skills %}
+    <div class="section">
+        <h2>Skills</h2>
+        <ul>
+            {% for skill in cv.skills %}
+                <li>{{ skill.name }} {% if skill.proficiency %}(Level: {{ skill.proficiency }}/5){% endif %}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if cv.certifications %}
+    <div class="section">
+        <h2>Certifications</h2>
+        <ul>
+            {% for cert in cv.certifications %}
+                <li>{{ cert.name }} - {{ cert.issuer or '' }} ({{ cert.year or '' }})</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if cv.languages %}
+    <div class="section">
+        <h2>Languages</h2>
+        <ul>
+            {% for lang in cv.languages %}
+                <li>
+                    <strong>{{ lang.name }}</strong> - 
+                    {% if lang.proficiency %}{{ lang.proficiency }}{% endif %}
+                    {% if lang.proficiency_level %}
+                        (Level {{ lang.proficiency_level }}/5)
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if cv.badges %}
+    <div class="section">
+        <h2>Achievements & Badges</h2>
+        <div class="badge-grid">
+            {% for badge in cv.badges %}
+                <div class="badge-item">
+                    {% if badge.badge_url %}
+                        <img src="{{ badge.badge_url }}" alt="{{ badge.name }}">
+                    {% else %}
+                        <div class="badge-icon">🏅</div>
+                    {% endif %}
+                    <div class="badge-name">{{ badge.name }}</div>
+                    {% if badge.issuer %}
+                        <div class="badge-issuer">{{ badge.issuer }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if cv.publications %}
+    <div class="section">
+        <h2>Publications</h2>
+        <ul>
+            {% for pub in cv.publications %}
+                <li>
+                    <strong>{{ pub.title }}</strong><br>
+                    {% if pub.authors %}{{ pub.authors }}<br>{% endif %}
+                    {% if pub.journal %}{{ pub.journal }}, {% endif %}
+                    {% if pub.year %}{{ pub.year }}{% endif %}
+                    {% if pub.doi %} DOI: {{ pub.doi }}{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</body>
+</html>
