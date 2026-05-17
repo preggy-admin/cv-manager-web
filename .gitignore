@@ -63,7 +63,9 @@ htmlcov/
 # Secrets
 config.py
 secrets.json
+tokens.json
+*.token
 
-# OS
-.DS_Store
-Thumbs.db
+# Backup files
+*.backup
+backups/
