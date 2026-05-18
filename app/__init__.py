@@ -66,3 +66,12 @@ def create_app(config_class=None):
         db.create_all()
     
     return app
+
+# Add GA configuration to your create_app function
+def configure_analytics(app):
+    """Configure analytics"""
+    app.config['GA_MEASUREMENT_ID'] = os.environ.get('GA_MEASUREMENT_ID')
+    
+    @app.context_processor
+    def inject_analytics():
+        return dict(config=app.config)

@@ -1,0 +1,27 @@
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ GA_MEASUREMENT_ID }}', {
+    'send_page_view': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+  
+  // Track CV generation events
+  function trackCVGeneration(template, format) {
+    gtag('event', 'cv_generated', {
+      'template': template,
+      'format': format,
+      'user_id': '{{ current_user.id if current_user.is_authenticated else "" }}'
+    });
+  }
+  
+  // Track job matching
+  function trackJobMatch(score) {
+    gtag('event', 'job_match', {
+      'match_score': score
+    });
+  }
+</script>
