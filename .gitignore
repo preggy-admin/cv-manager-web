@@ -69,3 +69,21 @@ tokens.json
 # Backup files
 *.backup
 backups/
+docs/private/
+*.secret
+.env.production
+backups/
+
+Private documentation (internal only)
+
+docs/private/
+*.secret
+.env.production
+backups/
+*.key
+*.pem
+instance/cv_app.db
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
