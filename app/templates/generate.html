@@ -36,3 +36,18 @@
     </div>
 </div>
 {% endblock %}
+{% block extra_head %}
+<script>
+// Track when generate button is clicked
+document.addEventListener('DOMContentLoaded', function() {
+    const generateForm = document.querySelector('form');
+    if (generateForm) {
+        generateForm.addEventListener('submit', function() {
+            const template = document.querySelector('select[name="template"]').value;
+            const format = document.querySelector('select[name="format"]').value;
+            trackCVGeneration(template, format);
+        });
+    }
+});
+</script>
+{% endblock %}
