@@ -87,3 +87,8 @@ instance/cv_app.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Exclude generated CV documents but keep the folder structure
+documents/*.html
+documents/*.pdf
+!documents/.gitkeep
