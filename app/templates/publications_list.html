@@ -22,9 +22,7 @@
                     {% if pub.conference %}
                         <p><strong>Conference:</strong> {{ pub.conference }}</p>
                     {% endif %}
-                    {% if pub.doi %}
-                        <p><strong>DOI:</strong> {{ pub.doi }}</p>
-                    {% endif %}
+                    <a href="{{ url_for('cv.edit_publication', pub_id=pub.id) }}" class="btn btn-sm btn-warning">Edit</a>
                     <a href="{{ url_for('cv.delete_publication', pub_id=pub.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
                 </div>
             </div>

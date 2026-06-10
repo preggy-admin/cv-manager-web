@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if language else 'Add' }} Language{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-language"></i> {{ 'Edit' if language else 'Add' }} Language</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label>Language</label>
+                            <input type="text" name="name" class="form-control" 
+                                   value="{{ language.name if language else '' }}" 
+                                   placeholder="e.g., English, Spanish, Mandarin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>Proficiency Level</label>
+                            <select name="proficiency" class="form-control">
+                                <option value="Native" {% if language and language.proficiency == 'Native' %}selected{% endif %}>Native</option>
+                                <option value="Fluent" {% if language and language.proficiency == 'Fluent' %}selected{% endif %}>Fluent</option>
+                                <option value="Professional" {% if language and language.proficiency == 'Professional' %}selected{% endif %}>Professional Working</option>
+                                <option value="Conversational" {% if language and language.proficiency == 'Conversational' %}selected{% endif %}>Conversational</option>
+                                <option value="Basic" {% if language and language.proficiency == 'Basic' %}selected{% endif %}>Basic</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label>Proficiency Scale (1-5)</label>
+                            <select name="proficiency_level" class="form-control">
+                                <option value="1" {% if language and language.proficiency_level == 1 %}selected{% endif %}>1 - Basic</option>
+                                <option value="2" {% if language and language.proficiency_level == 2 %}selected{% endif %}>2 - Conversational</option>
+                                <option value="3" {% if language and language.proficiency_level == 3 %}selected{% endif %}>3 - Professional</option>
+                                <option value="4" {% if language and language.proficiency_level == 4 %}selected{% endif %}>4 - Fluent</option>
+                                <option value="5" {% if language and language.proficiency_level == 5 %}selected{% endif %}>5 - Native</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Language
+                        </button>
+                        <a href="{{ url_for('cv.list_languages') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

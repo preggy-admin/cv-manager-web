@@ -13,6 +13,7 @@ from datetime import datetime
 import os
 from weasyprint import HTML
 
+# Create the blueprint
 bp = Blueprint('cv', __name__, url_prefix='/cv')
 
 @bp.route('/dashboard')
@@ -22,7 +23,7 @@ def dashboard():
     
     # Calculate completion
     completion = 0
-    total = 7  # Increased for new sections
+    total = 7
     
     if profile.name and profile.summary:
         completion += 1
@@ -52,6 +53,7 @@ def dashboard():
     
     return render_template('dashboard.html', profile=profile, stats=stats)
 
+
 @bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
@@ -75,6 +77,7 @@ def edit_profile():
     
     return render_template('profile.html', profile=profile)
 
+
 # ============= WORK EXPERIENCE ROUTES =============
 
 @bp.route('/experience')
@@ -82,6 +85,7 @@ def edit_profile():
 def list_experience():
     experiences = current_user.work_experiences.order_by(WorkExperience.order).all()
     return render_template('experience_list.html', experiences=experiences)
+
 
 @bp.route('/experience/add', methods=['GET', 'POST'])
 @login_required
@@ -104,6 +108,7 @@ def add_experience():
     
     return render_template('experience_form.html')
 
+
 @bp.route('/experience/edit/<int:exp_id>', methods=['GET', 'POST'])
 @login_required
 def edit_experience(exp_id):
@@ -125,6 +130,7 @@ def edit_experience(exp_id):
     
     return render_template('experience_form.html', exp=exp)
 
+
 @bp.route('/experience/delete/<int:exp_id>')
 @login_required
 def delete_experience(exp_id):
@@ -135,6 +141,7 @@ def delete_experience(exp_id):
         flash('Experience deleted.', 'success')
     return redirect(url_for('cv.list_experience'))
 
+
 # ============= EDUCATION ROUTES =============
 
 @bp.route('/education')
@@ -142,6 +149,7 @@ def delete_experience(exp_id):
 def list_education():
     education_list = current_user.education.order_by(Education.order).all()
     return render_template('education_list.html', education=education_list)
+
 
 @bp.route('/education/add', methods=['GET', 'POST'])
 @login_required
@@ -164,6 +172,7 @@ def add_education():
     
     return render_template('education_form.html')
 
+
 @bp.route('/education/edit/<int:edu_id>', methods=['GET', 'POST'])
 @login_required
 def edit_education(edu_id):
@@ -185,6 +194,7 @@ def edit_education(edu_id):
     
     return render_template('education_form.html', edu=edu)
 
+
 @bp.route('/education/delete/<int:edu_id>')
 @login_required
 def delete_education(edu_id):
@@ -195,6 +205,7 @@ def delete_education(edu_id):
         flash('Education deleted.', 'success')
     return redirect(url_for('cv.list_education'))
 
+
 # ============= SKILLS ROUTES =============
 
 @bp.route('/skills')
@@ -202,6 +213,7 @@ def delete_education(edu_id):
 def list_skills():
     skills = current_user.skills.order_by(Skill.order).all()
     return render_template('skills_list.html', skills=skills)
+
 
 @bp.route('/skills/add', methods=['GET', 'POST'])
 @login_required
@@ -221,6 +233,7 @@ def add_skill():
     
     return render_template('skill_form.html')
 
+
 @bp.route('/skills/edit/<int:skill_id>', methods=['GET', 'POST'])
 @login_required
 def edit_skill(skill_id):
@@ -239,6 +252,7 @@ def edit_skill(skill_id):
     
     return render_template('skill_form.html', skill=skill)
 
+
 @bp.route('/skills/delete/<int:skill_id>')
 @login_required
 def delete_skill(skill_id):
@@ -249,6 +263,7 @@ def delete_skill(skill_id):
         flash('Skill deleted.', 'success')
     return redirect(url_for('cv.list_skills'))
 
+
 # ============= PUBLICATIONS ROUTES =============
 
 @bp.route('/publications')
@@ -256,6 +271,7 @@ def delete_skill(skill_id):
 def list_publications():
     publications = current_user.publications.order_by(Publication.order).all()
     return render_template('publications_list.html', publications=publications)
+
 
 @bp.route('/publications/add', methods=['GET', 'POST'])
 @login_required
@@ -283,6 +299,7 @@ def add_publication():
     
     return render_template('publication_form.html')
 
+
 @bp.route('/publications/edit/<int:pub_id>', methods=['GET', 'POST'])
 @login_required
 def edit_publication(pub_id):
@@ -309,6 +326,7 @@ def edit_publication(pub_id):
     
     return render_template('publication_form.html', pub=pub)
 
+
 @bp.route('/publications/delete/<int:pub_id>')
 @login_required
 def delete_publication(pub_id):
@@ -319,6 +337,7 @@ def delete_publication(pub_id):
         flash('Publication deleted.', 'success')
     return redirect(url_for('cv.list_publications'))
 
+
 # ============= CERTIFICATIONS ROUTES =============
 
 @bp.route('/certifications')
@@ -326,6 +345,7 @@ def delete_publication(pub_id):
 def list_certifications():
     certifications = current_user.certifications.order_by(Certification.id).all()
     return render_template('certifications_list.html', certifications=certifications)
+
 
 @bp.route('/certifications/add', methods=['GET', 'POST'])
 @login_required
@@ -345,6 +365,7 @@ def add_certification():
     
     return render_template('certification_form.html')
 
+
 @bp.route('/certifications/delete/<int:cert_id>')
 @login_required
 def delete_certification(cert_id):
@@ -355,6 +376,7 @@ def delete_certification(cert_id):
         flash('Certification deleted.', 'success')
     return redirect(url_for('cv.list_certifications'))
 
+
 # ============= LANGUAGES ROUTES =============
 
 @bp.route('/languages')
@@ -362,6 +384,7 @@ def delete_certification(cert_id):
 def list_languages():
     languages = current_user.languages.order_by(Language.order).all()
     return render_template('languages_list.html', languages=languages)
+
 
 @bp.route('/languages/add', methods=['GET', 'POST'])
 @login_required
@@ -381,6 +404,7 @@ def add_language():
     
     return render_template('language_form.html')
 
+
 @bp.route('/languages/edit/<int:lang_id>', methods=['GET', 'POST'])
 @login_required
 def edit_language(lang_id):
@@ -399,6 +423,7 @@ def edit_language(lang_id):
     
     return render_template('language_form.html', language=language)
 
+
 @bp.route('/languages/delete/<int:lang_id>')
 @login_required
 def delete_language(lang_id):
@@ -409,6 +434,7 @@ def delete_language(lang_id):
         flash('Language deleted.', 'success')
     return redirect(url_for('cv.list_languages'))
 
+
 # ============= BADGES ROUTES =============
 
 @bp.route('/badges')
@@ -417,10 +443,11 @@ def list_badges():
     badges = current_user.badges.order_by(Badge.id).all()
     return render_template('badges_list.html', badges=badges)
 
+
 @bp.route('/badges/add', methods=['GET', 'POST'])
 @login_required
 def add_badge():
-    if request.method == 'POST':
+    if request_method == 'POST':
         badge = Badge(
             user_id=current_user.id,
             name=request.form.get('name'),
@@ -436,6 +463,7 @@ def add_badge():
         return redirect(url_for('cv.list_badges'))
     
     return render_template('badge_form.html')
+
 
 @bp.route('/badges/edit/<int:badge_id>', methods=['GET', 'POST'])
 @login_required
@@ -458,6 +486,7 @@ def edit_badge(badge_id):
     
     return render_template('badge_form.html', badge=badge)
 
+
 @bp.route('/badges/delete/<int:badge_id>')
 @login_required
 def delete_badge(badge_id):
@@ -468,6 +497,7 @@ def delete_badge(badge_id):
         flash('Badge deleted.', 'success')
     return redirect(url_for('cv.list_badges'))
 
+
 # ============= CV GENERATION =============
 
 @bp.route('/generate', methods=['GET', 'POST'])
@@ -477,7 +507,6 @@ def generate_cv():
         template = request.form.get('template', 'classic')
         format_type = request.form.get('format', 'html')
         
-        # Build CV data with all sections including languages and badges
         cv_data = {
             'personal_info': current_user.profile,
             'work_experience': current_user.work_experiences.all(),
@@ -491,17 +520,22 @@ def generate_cv():
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         
+        # Get the absolute path to the documents directory (project root)
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+        documents_dir = os.path.join(base_dir, 'documents')
+        os.makedirs(documents_dir, exist_ok=True)
+        
         if format_type == 'html':
             html = render_template('cv_template.html', cv=cv_data)
             filename = f"cv_{current_user.username}_{timestamp}.html"
-            filepath = os.path.join('documents', filename)
-            with open(filepath, 'w') as f:
+            filepath = os.path.join(documents_dir, filename)
+            with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(html)
             return send_file(filepath, as_attachment=True)
         elif format_type == 'pdf':
             html = render_template('cv_template.html', cv=cv_data)
             filename = f"cv_{current_user.username}_{timestamp}.pdf"
-            filepath = os.path.join('documents', filename)
+            filepath = os.path.join(documents_dir, filename)
             HTML(string=html).write_pdf(filepath)
             return send_file(filepath, as_attachment=True)
     

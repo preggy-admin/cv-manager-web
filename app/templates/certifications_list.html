@@ -16,9 +16,6 @@
                     <h5>{{ cert.name }}</h5>
                     <p class="text-muted">{{ cert.issuer or 'No issuer specified' }}</p>
                     <p>Year: {{ cert.year or 'N/A' }}</p>
-                    {% if cert.credential_id %}
-                        <p>Credential ID: {{ cert.credential_id }}</p>
-                    {% endif %}
                     <a href="{{ url_for('cv.delete_certification', cert_id=cert.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>
                 </div>
             </div>
