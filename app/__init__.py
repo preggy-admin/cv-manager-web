@@ -92,21 +92,41 @@ def register_cli(app):
     @app.cli.command('create-admin')
     @click.argument('username')
     def create_admin(username):
-        """Promote an existing user to admin, or create one if not found."""
+        """Promote an existing user to admin by username or email, or create one if not found.
+
+        Pass a username to promote, or if no user is found by that username,
+        you will be prompted for an email — if that email already exists in the
+        database, that account is promoted instead of creating a duplicate.
+        """
         with app.app_context():
             from app.models import User, Profile
+
+            # 1. Try to find by username first
             user = User.query.filter_by(username=username).first()
+
             if not user:
-                click.echo(f"User '{username}' not found. Creating...")
-                email = click.prompt('Email')
-                password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
-                user = User(username=username, email=email, is_admin=True)
-                user.set_password(password)
-                db.session.add(user)
-                db.session.flush()
-                profile = Profile(user_id=user.id)
-                db.session.add(profile)
+                click.echo(f"User '{username}' not found by username.")
+                email = click.prompt('Email (used to find or create the account)')
+
+                # 2. Try to find by email (handles the case where the account
+                #    exists under a different username)
+                user = User.query.filter_by(email=email).first()
+
+                if user:
+                    click.echo(f"Found existing account: '{user.username}' ({user.email}). Promoting to admin...")
+                    user.is_admin = True
+                else:
+                    # 3. Truly new user — create from scratch
+                    click.echo(f"No account found for {email}. Creating new admin user '{username}'...")
+                    password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+                    user = User(username=username, email=email, is_admin=True)
+                    user.set_password(password)
+                    db.session.add(user)
+                    db.session.flush()
+                    profile = Profile(user_id=user.id)
+                    db.session.add(profile)
             else:
                 user.is_admin = True
+
             db.session.commit()
-            click.echo(f"✅ '{username}' is now an admin.")
+            click.echo(f"✅ '{user.username}' ({user.email}) is now an admin.")
