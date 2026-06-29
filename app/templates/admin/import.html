@@ -1,0 +1,97 @@
+{% extends 'admin/base.html' %}
+{% block title %}Import Data — {{ user.username }}{% endblock %}
+
+{% block admin_content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="text-muted text-decoration-none small">
+        <i class="fas fa-arrow-left me-1"></i>{{ user.username }}
+    </a>
+    <h2 class="fw-bold mt-1"><i class="fas fa-upload me-2 text-primary"></i>Bulk Import</h2>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Upload File</div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Section</label>
+                        <select name="section" class="form-select" required id="section-select">
+                            {% for section in sections %}
+                            <option value="{{ section }}">{{ section | capitalize }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Format</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="format" id="fmt-csv" value="csv" checked>
+                                <label class="form-check-label" for="fmt-csv">CSV</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="format" id="fmt-json" value="json">
+                                <label class="form-check-label" for="fmt-json">JSON</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">File</label>
+                        <input type="file" name="file" class="form-control" accept=".csv,.json" required>
+                        <div class="form-text">Max file size: 16 MB</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-upload me-2"></i>Import
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white fw-semibold">Expected Columns</div>
+            <div class="card-body p-0">
+                <div id="schema-publications" class="schema-block p-3">
+                    <h6 class="fw-semibold text-primary mb-2">Publications</h6>
+                    <code class="small d-block text-muted">title, authors, year, journal, conference, publisher, doi, pages, volume, issue, pub_type</code>
+                </div>
+                <div id="schema-skills" class="schema-block p-3 d-none">
+                    <h6 class="fw-semibold text-primary mb-2">Skills</h6>
+                    <code class="small d-block text-muted">name, category, proficiency (1–5)</code>
+                </div>
+                <div id="schema-experience" class="schema-block p-3 d-none">
+                    <h6 class="fw-semibold text-primary mb-2">Work Experience</h6>
+                    <code class="small d-block text-muted">company, position, start_date, end_date, description, current (true/false)</code>
+                </div>
+                <div id="schema-education" class="schema-block p-3 d-none">
+                    <h6 class="fw-semibold text-primary mb-2">Education</h6>
+                    <code class="small d-block text-muted">institution, degree, field, start_year, end_year, description</code>
+                </div>
+                <div class="p-3 border-top">
+                    <p class="small text-muted mb-1">
+                        <i class="fas fa-info-circle me-1 text-info"></i>
+                        Duplicate entries are skipped automatically (by DOI for publications, by name for skills, etc.).
+                    </p>
+                    <p class="small text-muted mb-0">
+                        <i class="fas fa-info-circle me-1 text-info"></i>
+                        JSON must be a top-level array of objects with the same column names as CSV headers.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const select = document.getElementById('section-select');
+function updateSchema() {
+    document.querySelectorAll('.schema-block').forEach(b => b.classList.add('d-none'));
+    const target = document.getElementById('schema-' + select.value);
+    if (target) target.classList.remove('d-none');
+}
+select.addEventListener('change', updateSchema);
+updateSchema();
+</script>
+{% endblock %}

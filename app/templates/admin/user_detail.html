@@ -1,0 +1,255 @@
+{% extends 'admin/base.html' %}
+{% block title %}{{ user.username }} — Admin{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{{ url_for('admin.users_list') }}" class="text-muted text-decoration-none small">
+            <i class="fas fa-arrow-left me-1"></i>Users
+        </a>
+        <h2 class="fw-bold mb-0 mt-1">
+            {{ user.username }}
+            {% if user.is_admin %}<span class="badge bg-warning text-dark ms-2 fs-6">Admin</span>{% endif %}
+            {% if not user.is_active %}<span class="badge bg-secondary ms-2 fs-6">Inactive</span>{% endif %}
+        </h2>
+        <div class="text-muted">{{ user.email }}</div>
+    </div>
+    <div class="d-flex gap-2">
+        <!-- Toggle active -->
+        <form method="POST" action="{{ url_for('admin.toggle_active', user_id=user.id) }}"
+              onsubmit="return confirm('Toggle active status for {{ user.username }}?')">
+            <button class="btn btn-sm {% if user.is_active %}btn-outline-secondary{% else %}btn-outline-success{% endif %}">
+                <i class="fas fa-{% if user.is_active %}ban{% else %}check{% endif %} me-1"></i>
+                {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+        </form>
+        <!-- Toggle admin -->
+        <form method="POST" action="{{ url_for('admin.toggle_admin', user_id=user.id) }}"
+              onsubmit="return confirm('Change admin role for {{ user.username }}?')">
+            <button class="btn btn-sm {% if user.is_admin %}btn-outline-warning{% else %}btn-outline-primary{% endif %}">
+                <i class="fas fa-shield-alt me-1"></i>
+                {% if user.is_admin %}Demote{% else %}Promote to Admin{% endif %}
+            </button>
+        </form>
+        <!-- Delete -->
+        <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+              onsubmit="return confirm('Permanently delete {{ user.username }}? This cannot be undone.')">
+            <button class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-trash me-1"></i>Delete
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="cvTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-profile">Profile</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-pubs">Publications ({{ user.publications.count() }})</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-exp">Experience ({{ user.work_experiences.count() }})</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-edu">Education ({{ user.education.count() }})</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-skills">Skills ({{ user.skills.count() }})</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-cl">Cover Letters ({{ user.cover_letters.count() }})</a></li>
+</ul>
+
+<div class="tab-content">
+
+    <!-- Profile -->
+    <div class="tab-pane fade show active" id="tab-profile">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span class="fw-semibold">Profile</span>
+                <a href="{{ url_for('admin.edit_user_profile', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-edit me-1"></i>Edit
+                </a>
+            </div>
+            <div class="card-body">
+                {% if user.profile %}
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Name</dt><dd class="col-sm-9">{{ user.profile.name or '—' }}</dd>
+                    <dt class="col-sm-3">Title</dt><dd class="col-sm-9">{{ user.profile.title or '—' }}</dd>
+                    <dt class="col-sm-3">Location</dt><dd class="col-sm-9">{{ user.profile.location or '—' }}</dd>
+                    <dt class="col-sm-3">Phone</dt><dd class="col-sm-9">{{ user.profile.phone or '—' }}</dd>
+                    <dt class="col-sm-3">Email</dt><dd class="col-sm-9">{{ user.profile.email or '—' }}</dd>
+                    <dt class="col-sm-3">LinkedIn</dt><dd class="col-sm-9">{{ user.profile.linkedin_url or '—' }}</dd>
+                    <dt class="col-sm-3">GitHub</dt><dd class="col-sm-9">{{ user.profile.github_url or '—' }}</dd>
+                    <dt class="col-sm-3">ORCID</dt><dd class="col-sm-9">{{ user.profile.orcid_id or '—' }}</dd>
+                    <dt class="col-sm-3">Summary</dt>
+                    <dd class="col-sm-9"><div style="white-space:pre-wrap">{{ user.profile.summary or '—' }}</div></dd>
+                </dl>
+                {% else %}
+                <p class="text-muted">No profile data yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Publications -->
+    <div class="tab-pane fade" id="tab-pubs">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span class="fw-semibold">Publications</span>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('admin.import_data', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-upload me-1"></i>Import
+                    </a>
+                    <a href="{{ url_for('admin.admin_add_publication', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Add
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light"><tr><th>Title</th><th>Year</th><th>Type</th><th>DOI</th><th></th></tr></thead>
+                    <tbody>
+                        {% for pub in user.publications.all() %}
+                        <tr>
+                            <td>{{ pub.title }}</td>
+                            <td>{{ pub.year or '—' }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ pub.pub_type or '—' }}</span></td>
+                            <td><small>{{ pub.doi or '—' }}</small></td>
+                            <td class="text-end">
+                                <a href="{{ url_for('admin.admin_edit_publication', user_id=user.id, pub_id=pub.id) }}"
+                                   class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <form method="POST"
+                                      action="{{ url_for('admin.admin_delete_publication', user_id=user.id, pub_id=pub.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete this publication?')">
+                                    <button class="btn btn-sm btn-outline-danger">Del</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No publications yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Experience -->
+    <div class="tab-pane fade" id="tab-exp">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span class="fw-semibold">Work Experience</span>
+                <a href="{{ url_for('admin.import_data', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-upload me-1"></i>Import
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light"><tr><th>Company</th><th>Position</th><th>From</th><th>To</th></tr></thead>
+                    <tbody>
+                        {% for exp in user.work_experiences.all() %}
+                        <tr>
+                            <td>{{ exp.company }}</td>
+                            <td>{{ exp.position }}</td>
+                            <td>{{ exp.start_date }}</td>
+                            <td>{{ 'Present' if exp.current else (exp.end_date or '—') }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No experience yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Education -->
+    <div class="tab-pane fade" id="tab-edu">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span class="fw-semibold">Education</span>
+                <a href="{{ url_for('admin.import_data', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-upload me-1"></i>Import
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light"><tr><th>Institution</th><th>Degree</th><th>Field</th><th>Years</th></tr></thead>
+                    <tbody>
+                        {% for edu in user.education.all() %}
+                        <tr>
+                            <td>{{ edu.institution }}</td>
+                            <td>{{ edu.degree }}</td>
+                            <td>{{ edu.field or '—' }}</td>
+                            <td>{{ edu.start_year or '?' }} – {{ edu.end_year or 'Present' }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No education yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="tab-pane fade" id="tab-skills">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span class="fw-semibold">Skills</span>
+                <a href="{{ url_for('admin.import_data', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-upload me-1"></i>Import
+                </a>
+            </div>
+            <div class="card-body">
+                {% set skills = user.skills.all() %}
+                {% if skills %}
+                <div class="d-flex flex-wrap gap-2">
+                    {% for skill in skills %}
+                    <span class="badge bg-light text-dark border px-3 py-2">
+                        {{ skill.name }}
+                        {% if skill.category %}<small class="text-muted"> · {{ skill.category }}</small>{% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No skills yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Cover Letters -->
+    <div class="tab-pane fade" id="tab-cl">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between">
+                <span class="fw-semibold">Cover Letters</span>
+                <a href="{{ url_for('admin.add_cover_letter', user_id=user.id) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i>New
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light"><tr><th>Title</th><th>Company</th><th>Role</th><th>Updated</th><th></th></tr></thead>
+                    <tbody>
+                        {% for cl in user.cover_letters.all() %}
+                        <tr>
+                            <td class="fw-semibold">{{ cl.title }}</td>
+                            <td>{{ cl.target_company or '—' }}</td>
+                            <td>{{ cl.target_role or '—' }}</td>
+                            <td class="text-muted small">{{ cl.updated_at.strftime('%d %b %Y') if cl.updated_at else '—' }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('admin.edit_cover_letter', user_id=user.id, cl_id=cl.id) }}"
+                                   class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <form method="POST"
+                                      action="{{ url_for('admin.delete_cover_letter', user_id=user.id, cl_id=cl.id) }}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Delete this cover letter?')">
+                                    <button class="btn btn-sm btn-outline-danger">Del</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">No cover letters yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div><!-- end tab-content -->
+{% endblock %}

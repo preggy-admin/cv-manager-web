@@ -1,0 +1,63 @@
+{% extends 'admin/base.html' %}
+{% block title %}Cover Letter — {{ user.username }}{% endblock %}
+
+{% block admin_content %}
+<div class="mb-4">
+    <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="text-muted text-decoration-none small">
+        <i class="fas fa-arrow-left me-1"></i>{{ user.username }}
+    </a>
+    <h2 class="fw-bold mt-1">
+        {% if cl %}Edit Cover Letter{% else %}New Cover Letter{% endif %}
+    </h2>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" class="form-control"
+                           value="{{ cl.title if cl else '' }}" required placeholder="e.g. Application for Senior Researcher">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Target Company</label>
+                    <input type="text" name="target_company" class="form-control"
+                           value="{{ cl.target_company if cl else '' }}" placeholder="e.g. Acme Corp">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Target Role</label>
+                    <input type="text" name="target_role" class="form-control"
+                           value="{{ cl.target_role if cl else '' }}" placeholder="e.g. Data Scientist">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Body (Markdown supported)</label>
+                <!-- EasyMDE Markdown editor loaded from CDN -->
+                <textarea name="body" id="cover-letter-body" class="form-control"
+                          rows="18" placeholder="Write the cover letter here…">{{ cl.body if cl else '' }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('admin.user_detail', user_id=user.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i>{% if cl %}Save Changes{% else %}Create{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EasyMDE for Markdown editing -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
+<script>
+    const easyMDE = new EasyMDE({
+        element: document.getElementById('cover-letter-body'),
+        spellChecker: false,
+        autosave: { enabled: true, uniqueId: 'cover-letter-{{ user.id }}-{{ cl.id if cl else "new" }}' },
+        toolbar: ['bold','italic','heading','|','quote','unordered-list','ordered-list','|','link','|','preview','side-by-side','fullscreen','|','guide'],
+    });
+</script>
+{% endblock %}

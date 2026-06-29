@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(200), nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -29,6 +30,7 @@ class User(UserMixin, db.Model):
     publications = db.relationship('Publication', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     languages = db.relationship('Language', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     badges = db.relationship('Badge', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    cover_letters = db.relationship('CoverLetter', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -156,3 +158,20 @@ class Badge(db.Model):
     badge_url = db.Column(db.String(500))
     description = db.Column(db.Text)
     category = db.Column(db.String(50))
+
+
+class CoverLetter(db.Model):
+    """Cover letters authored per user"""
+    __tablename__ = 'cover_letters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    target_company = db.Column(db.String(200))
+    target_role = db.Column(db.String(200))
+    body = db.Column(db.Text)  # Markdown
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<CoverLetter {self.title}>'
