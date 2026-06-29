@@ -32,8 +32,11 @@ echo "════════════════════════�
 echo ""
 echo "📦  Pulling latest changes from git..."
 cd "$APP_DIR"
-# Allow git to operate on this directory regardless of file ownership
+# Allow git to operate regardless of file ownership
 git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+# Stash any local edits on the server so the pull can proceed cleanly
+STASH_RESULT=$(git stash 2>&1)
+echo "   stash: $STASH_RESULT"
 git pull origin main
 echo "✅  Code updated"
 
