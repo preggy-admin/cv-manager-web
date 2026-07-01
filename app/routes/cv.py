@@ -12,6 +12,9 @@ from app.models import (
 from datetime import datetime
 import os
 from weasyprint import HTML
+import secrets
+from app.models import CVVersion
+import app.utils.storage as storage
 
 # Create the blueprint
 bp = Blueprint('cv', __name__, url_prefix='/cv')
@@ -540,3 +543,61 @@ def generate_cv():
             return send_file(filepath, as_attachment=True)
     
     return render_template('generate.html')
+
+# ============= PUBLIC CV VERSION ROUTES =============
+
+@bp.route('/versions')
+@login_required
+def list_versions():
+    versions = current_user.cv_versions.order_by(CVVersion.created_at.desc()).all()
+    return render_template('versions_list.html', versions=versions)
+
+@bp.route('/versions/create', methods=['POST'])
+@login_required
+def create_version():
+    # Generate CV HTML
+    cv_data = {
+        'personal_info': current_user.profile,
+        'work_experience': current_user.work_experiences.all(),
+        'education': current_user.education.all(),
+        'skills': current_user.skills.all(),
+        'certifications': current_user.certifications.all(),
+        'publications': current_user.publications.all(),
+        'languages': current_user.languages.all(),
+        'badges': current_user.badges.all()
+    }
+    html = render_template('cv_template.html', cv=cv_data)
+    # Create a slug and upload HTML to GCS
+    slug = secrets.token_urlsafe(8)
+    blob_name = f"{slug}.html"
+    gcs_uri = storage.upload_cv(blob_name, html.encode('utf-8'))
+    # Store version record
+    version = CVVersion(user_id=current_user.id, title=request.form.get('title'), slug=slug, gcs_path=gcs_uri, html_snapshot=html)
+    db.session.add(version)
+    db.session.commit()
+    flash('CV version created!', 'success')
+    return redirect(url_for('cv.list_versions'))
+
+@bp.route('/versions/<slug>/toggle_public', methods=['POST'])
+@login_required
+def toggle_public(slug):
+    version = CVVersion.query.filter_by(slug=slug, user_id=current_user.id).first_or_404()
+    version.is_public = not version.is_public
+    if version.is_public:
+        storage.make_public(f"{slug}.html")
+    else:
+        storage.make_private(f"{slug}.html")
+    db.session.commit()
+    flash('Public status updated.', 'success')
+    return redirect(url_for('cv.list_versions'))
+
+@bp.route('/versions/<slug>/delete', methods=['POST'])
+@login_required
+def delete_version(slug):
+    version = CVVersion.query.filter_by(slug=slug, user_id=current_user.id).first_or_404()
+    # Delete from GCS
+    storage.delete_cv(f"{slug}.html")
+    db.session.delete(version)
+    db.session.commit()
+    flash('CV version deleted.', 'success')
+    return redirect(url_for('cv.list_versions'))

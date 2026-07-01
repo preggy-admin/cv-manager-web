@@ -6,6 +6,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from app import db
+import secrets
 
 
 class User(UserMixin, db.Model):
@@ -16,8 +17,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(200), nullable=False)
-    is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
+    is_premium = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -31,6 +32,7 @@ class User(UserMixin, db.Model):
     languages = db.relationship('Language', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     badges = db.relationship('Badge', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     cover_letters = db.relationship('CoverLetter', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    cv_versions = db.relationship('CVVersion', backref='owner', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -175,3 +177,18 @@ class CoverLetter(db.Model):
 
     def __repr__(self):
         return f'<CoverLetter {self.title}>'
+
+class CVVersion(db.Model):
+    __tablename__ = 'cv_version'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    title = db.Column(db.String(100))  # e.g., "AI Specialist"
+    slug = db.Column(db.String(64), unique=True, nullable=False, default=lambda: secrets.token_urlsafe(8))
+    is_public = db.Column(db.Boolean, default=False)
+    gcs_path = db.Column(db.String(512), nullable=False)
+    html_snapshot = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<CVVersion {self.id} slug={self.slug}>"

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}My CV Versions{% endblock %}
+
+{% block content %}
+<h1 class="section-title" style="font-family: 'Inter', sans-serif; color: #2c3e50; margin-bottom: 1.5rem;">Your CV Versions</h1>
+
+<!-- Create new version form -->
+<form action="{{ url_for('cv.create_version') }}" method="post" class="mb-4" style="background: #f9f9f9; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+  <div class="form-group">
+    <label for="title" style="font-weight: 600; color: #34495e;">Version Title</label>
+    <input type="text" name="title" id="title" class="form-control" placeholder="e.g. AI Specialist" required style="border: 1px solid #ccc; border-radius: 4px; padding: .5rem; width: 100%;">
+  </div>
+  <button type="submit" class="btn btn-primary mt-2" style="background: #2980b9; border: none; padding: .5rem 1rem; border-radius: 4px; color: #fff; cursor: pointer; transition: background .3s;">Create Version</button>
+</form>
+
+{% if versions %}
+<table class="table" style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+  <thead>
+    <tr style="background: #ecf0f1;">
+      <th style="padding: .75rem; text-align: left;">Title</th>
+      <th style="padding: .75rem; text-align: left;">Slug</th>
+      <th style="padding: .75rem; text-align: left;">Public</th>
+      <th style="padding: .75rem; text-align: left;">Created</th>
+      <th style="padding: .75rem; text-align: left;">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for v in versions %}
+    <tr style="border-bottom: 1px solid #ddd;">
+      <td style="padding: .75rem;">{{ v.title or "(untitled)" }}</td>
+      <td style="padding: .75rem;"><code>{{ v.slug }}</code></td>
+      <td style="padding: .75rem;">{{ "Yes" if v.is_public else "No" }}</td>
+      <td style="padding: .75rem;">{{ v.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+      <td style="padding: .75rem;">
+        <form action="{{ url_for('cv.toggle_public', slug=v.slug) }}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-sm {{ 'btn-success' if not v.is_public else 'btn-warning' }}" style="background: {{ '#27ae60' if not v.is_public else '#e67e22' }}; color: #fff; border: none; padding: .25rem .5rem; border-radius: 3px; cursor: pointer; margin-right: .5rem;">{{ 'Make Public' if not v.is_public else 'Make Private' }}</button>
+        </form>
+        <form action="{{ url_for('cv.delete_version', slug=v.slug) }}" method="post" style="display:inline;" onsubmit="return confirm('Delete this version?');">
+          <button type="submit" class="btn btn-sm btn-danger" style="background: #c0392b; color: #fff; border: none; padding: .25rem .5rem; border-radius: 3px; cursor: pointer;">Delete</button>
+        </form>
+        {% if v.is_public %}
+        <a href="https://storage.googleapis.com/{{ v.gcs_path.split('/')[-2] }}/{{ v.gcs_path.split('/')[-1] }}" target="_blank" class="btn btn-sm btn-info" style="background: #3498db; color: #fff; border: none; padding: .25rem .5rem; border-radius: 3px; cursor: pointer; margin-left: .5rem;">View</a>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="font-style: italic; color: #7f8c8d;">You have no saved CV versions yet.</p>
+{% endif %}
+{% endblock %}

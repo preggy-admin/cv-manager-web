@@ -4,9 +4,11 @@ Flask-Login==0.6.2
 Flask-Migrate==4.0.7
 Werkzeug==2.3.7
 python-dotenv==1.0.0
-WeasyPrint==60.1
+WeasyPrint==62.1
 markdown==3.4.4
 Jinja2==3.1.2
 requests==2.31.0
 email-validator==2.0.0
 blinker==1.6.3
+google-cloud-storage==2.14.1
+python-slugify==8.0.4
