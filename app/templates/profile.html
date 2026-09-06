@@ -53,6 +53,10 @@
                             <label>Professional Summary</label>
                             <textarea name="summary" class="form-control" rows="5">{{ profile.summary or '' }}</textarea>
                         </div>
+                        <div class="mb-3">
+                            <label>Career Trajectory / Aspirations</label>
+                            <textarea name="career_aspirations" class="form-control" rows="5">{{ profile.career_aspirations or '' }}</textarea>
+                        </div>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                         <a href="{{ url_for('cv.dashboard') }}" class="btn btn-secondary">Cancel</a>
                     </form>

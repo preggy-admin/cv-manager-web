@@ -201,5 +201,21 @@
         </ul>
     </div>
     {% endif %}
+    
+    {% if cv.referees %}
+    <div class="section">
+        <h2>References</h2>
+        <ul>
+            {% for referee in cv.referees %}
+                <li>
+                    <strong>{{ referee.name }}</strong>{% if referee.title or referee.company %} - {{ referee.title }}{% if referee.title and referee.company %}, {% endif %}{{ referee.company }}{% endif %}<br>
+                    {% if referee.relationship %}Relationship: {{ referee.relationship }}<br>{% endif %}
+                    {% if referee.email %}Email: {{ referee.email }}<br>{% endif %}
+                    {% if referee.phone %}Phone: {{ referee.phone }}{% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </body>
 </html>

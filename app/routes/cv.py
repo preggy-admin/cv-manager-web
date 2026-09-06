@@ -2,16 +2,18 @@
 CV Routes - Dashboard and CV Management
 """
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file
+from flask import Blueprint, render_template, redirect, url_for, flash, request, send_file, jsonify
 from flask_login import login_required, current_user
 from app import db
 from app.models import (
     WorkExperience, Education, Skill, Certification, Publication, 
-    Profile, Language, Badge
+    Profile, Language, Badge, Referee
 )
 from datetime import datetime
 import os
+import json
 from weasyprint import HTML
+from app.services.llm_service import llm_service
 
 # Create the blueprint
 bp = Blueprint('cv', __name__, url_prefix='/cv')
@@ -20,10 +22,14 @@ bp = Blueprint('cv', __name__, url_prefix='/cv')
 @login_required
 def dashboard():
     profile = current_user.profile
+    if not profile:
+        profile = Profile(user_id=current_user.id)
+        db.session.add(profile)
+        db.session.commit()
     
     # Calculate completion
     completion = 0
-    total = 7
+    total = 8
     
     if profile.name and profile.summary:
         completion += 1
@@ -39,6 +45,8 @@ def dashboard():
         completion += 1
     if current_user.badges.count() > 0:
         completion += 1
+    if current_user.referees.count() > 0:
+        completion += 1
     
     stats = {
         'work_count': current_user.work_experiences.count(),
@@ -48,6 +56,7 @@ def dashboard():
         'publications_count': current_user.publications.count(),
         'languages_count': current_user.languages.count(),
         'badges_count': current_user.badges.count(),
+        'referees_count': current_user.referees.count(),
         'completion_pct': (completion / total) * 100 if total > 0 else 0
     }
     
@@ -70,6 +79,7 @@ def edit_profile():
         profile.github_url = request.form.get('github_url')
         profile.website_url = request.form.get('website_url')
         profile.orcid_id = request.form.get('orcid_id')
+        profile.career_aspirations = request.form.get('career_aspirations')
         
         db.session.commit()
         flash('Profile updated!', 'success')
@@ -447,7 +457,7 @@ def list_badges():
 @bp.route('/badges/add', methods=['GET', 'POST'])
 @login_required
 def add_badge():
-    if request_method == 'POST':
+    if request.method == 'POST':
         badge = Badge(
             user_id=current_user.id,
             name=request.form.get('name'),
@@ -498,6 +508,70 @@ def delete_badge(badge_id):
     return redirect(url_for('cv.list_badges'))
 
 
+# ============= REFEREES ROUTES =============
+
+@bp.route('/referees')
+@login_required
+def list_referees():
+    referees = current_user.referees.order_by(Referee.order).all()
+    return render_template('referees_list.html', referees=referees)
+
+
+@bp.route('/referees/add', methods=['GET', 'POST'])
+@login_required
+def add_referee():
+    if request.method == 'POST':
+        referee = Referee(
+            user_id=current_user.id,
+            name=request.form.get('name'),
+            title=request.form.get('title'),
+            company=request.form.get('company'),
+            email=request.form.get('email'),
+            phone=request.form.get('phone'),
+            relationship=request.form.get('relationship'),
+            order=current_user.referees.count()
+        )
+        db.session.add(referee)
+        db.session.commit()
+        flash('Referee added!', 'success')
+        return redirect(url_for('cv.list_referees'))
+    
+    return render_template('referee_form.html')
+
+
+@bp.route('/referees/edit/<int:referee_id>', methods=['GET', 'POST'])
+@login_required
+def edit_referee(referee_id):
+    referee = Referee.query.get_or_404(referee_id)
+    if referee.user_id != current_user.id:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('cv.dashboard'))
+    
+    if request.method == 'POST':
+        referee.name = request.form.get('name')
+        referee.title = request.form.get('title')
+        referee.company = request.form.get('company')
+        referee.email = request.form.get('email')
+        referee.phone = request.form.get('phone')
+        referee.relationship = request.form.get('relationship')
+        db.session.commit()
+        flash('Referee updated!', 'success')
+        return redirect(url_for('cv.list_referees'))
+    
+    return render_template('referee_form.html', referee=referee)
+
+
+@bp.route('/referees/delete/<int:referee_id>')
+@login_required
+def delete_referee(referee_id):
+    referee = Referee.query.get_or_404(referee_id)
+    if referee.user_id == current_user.id:
+        db.session.delete(referee)
+        db.session.commit()
+        flash('Referee deleted.', 'success')
+    return redirect(url_for('cv.list_referees'))
+
+
 # ============= CV GENERATION =============
 
 @bp.route('/generate', methods=['GET', 'POST'])
@@ -515,7 +589,8 @@ def generate_cv():
             'certifications': current_user.certifications.all(),
             'publications': current_user.publications.all(),
             'languages': current_user.languages.all(),
-            'badges': current_user.badges.all()
+            'badges': current_user.badges.all(),
+            'referees': current_user.referees.all()
         }
         
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -533,10 +608,76 @@ def generate_cv():
                 f.write(html)
             return send_file(filepath, as_attachment=True)
         elif format_type == 'pdf':
-            html = render_template('cv_template.html', cv=cv_data)
-            filename = f"cv_{current_user.username}_{timestamp}.pdf"
-            filepath = os.path.join(documents_dir, filename)
-            HTML(string=html).write_pdf(filepath)
-            return send_file(filepath, as_attachment=True)
+            try:
+                html = render_template('cv_template.html', cv=cv_data)
+                filename = f"cv_{current_user.username}_{timestamp}.pdf"
+                filepath = os.path.join(documents_dir, filename)
+                HTML(string=html).write_pdf(filepath)
+                return send_file(filepath, as_attachment=True)
+            except Exception as e:
+                import traceback
+                error_msg = str(e)
+                print(f"PDF Generation Error:\n{traceback.format_exc()}")
+                flash(f'Failed to generate PDF. Make sure WeasyPrint dependencies (like Pango/Cairo) are installed. Error: {error_msg}', 'danger')
+                return redirect(url_for('cv.generate_cv'))
     
     return render_template('generate.html')
+
+
+# ============= AI ASSISTANT ROUTES =============
+
+@bp.route('/assistant')
+@login_required
+def assistant():
+    return render_template('assistant.html')
+
+
+@bp.route('/api/chat', methods=['POST'])
+@login_required
+def api_chat():
+    data = request.json
+    message = data.get('message', '')
+    history = data.get('history', [])
+    mode = data.get('mode', 'general')  # 'general', 'career_trajectory', 'summary', 'experience'
+    
+    # System prompts based on mode
+    prompts = {
+        'general': "You are an expert career coach and CV writer. Help the user elicit details for their CV through socratic questioning. Don't write the whole CV at once, focus on one section at a time. IMPORTANT: Ask only ONE question at a time. Wait for the user's response before asking the next question. Output drafting results wrapped in <draft> tags when you feel they are ready for the user's CV.",
+        'career_trajectory': "You are a career strategist. Ask socratic questions to help the user articulate their long-term career aspirations, goals, and trajectory. IMPORTANT: Ask only ONE question at a time. Do not overwhelm the user with multiple questions in a single message. Draft a compelling 'Career Trajectory' paragraph when sufficient details are gathered, wrapped in <draft> tags.",
+        'summary': "You are an executive CV writer. Elicit details about the user's overall professional brand to draft a powerful Professional Summary. IMPORTANT: Ask only ONE probing question at a time. When ready, provide the summary wrapped in <draft> tags.",
+        'experience': "You are a CV writer focusing on work experience. Elicit bullet points for a specific job that focus on impact, metrics, and achievements. IMPORTANT: Ask only ONE question at a time. When ready, provide the responsibilities wrapped in <draft> tags."
+    }
+    
+    system_prompt = prompts.get(mode, prompts['general'])
+    
+    # Include current CV context if useful
+    profile = current_user.profile
+    if not profile:
+        profile = Profile(user_id=current_user.id)
+        db.session.add(profile)
+        db.session.commit()
+    cv_context = f"User Name: {profile.name or 'Unknown'}\nCurrent Title: {profile.title or 'Unknown'}\n"
+    system_prompt += f"\n\nContext about the user:\n{cv_context}"
+    
+    response = llm_service.generate_response(system_prompt, history, message)
+    
+    return jsonify({"response": response})
+
+
+@bp.route('/api/save-draft', methods=['POST'])
+@login_required
+def save_draft():
+    data = request.json
+    draft_content = data.get('content', '')
+    mode = data.get('mode', '')
+    
+    if mode == 'career_trajectory':
+        current_user.profile.career_aspirations = draft_content
+        db.session.commit()
+        return jsonify({"success": True, "message": "Career trajectory saved to profile!"})
+    elif mode == 'summary':
+        current_user.profile.summary = draft_content
+        db.session.commit()
+        return jsonify({"success": True, "message": "Summary saved to profile!"})
+    
+    return jsonify({"success": False, "message": f"Saving not implemented for mode: {mode}"})

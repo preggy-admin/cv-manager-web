@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}CV Assistant{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Assistant Modes</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <button class="list-group-item list-group-item-action active" onclick="setMode('general', this)">
+                            <i class="fas fa-magic"></i> General Chat
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="setMode('career_trajectory', this)">
+                            <i class="fas fa-route"></i> Career Trajectory
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="setMode('summary', this)">
+                            <i class="fas fa-id-card"></i> Professional Summary
+                        </button>
+                        <button class="list-group-item list-group-item-action" onclick="setMode('experience', this)">
+                            <i class="fas fa-briefcase"></i> Work Experience
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="draft-panel" class="card d-none">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-clipboard-check"></i> Draft Ready</h5>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">The assistant generated a draft. Review it and click save to apply it to your CV.</p>
+                    <div id="draft-content" class="p-2 border rounded bg-light mb-3" style="max-height: 200px; overflow-y: auto; font-size: 0.9em;"></div>
+                    <button class="btn btn-success w-100" onclick="saveDraft()">
+                        <i class="fas fa-save"></i> Save Draft
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-robot"></i> AI Career Coach</h4>
+                    <span id="current-mode-badge" class="badge bg-primary">General Chat</span>
+                </div>
+                <div class="card-body d-flex flex-column" style="height: 600px;">
+                    <div id="chat-messages" class="flex-grow-1 overflow-auto mb-3 border rounded p-3 bg-light">
+                        <div class="d-flex mb-3">
+                            <div class="bg-white p-3 rounded shadow-sm">
+                                <strong>AI Coach:</strong> Hello! I'm your AI career coach. How can I help you build your CV today? You can select a specific mode on the left or just start chatting!
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <form id="chat-form" onsubmit="sendMessage(event)">
+                            <div class="input-group">
+                                <button type="button" class="btn btn-outline-secondary" id="mic-btn" onclick="toggleSpeechRecognition()" title="Voice Input">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                                <input type="text" id="chat-input" class="form-control" placeholder="Type your message..." required>
+                                <button class="btn btn-primary" type="submit" id="send-btn">
+                                    <i class="fas fa-paper-plane"></i> Send
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentMode = 'general';
+    let chatHistory = [];
+    let currentDraft = '';
+
+    function setMode(mode, el) {
+        currentMode = mode;
+        
+        // Update active class
+        document.querySelectorAll('.list-group-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        el.classList.add('active');
+        
+        // Update badge
+        const titles = {
+            'general': 'General Chat',
+            'career_trajectory': 'Career Trajectory',
+            'summary': 'Professional Summary',
+            'experience': 'Work Experience'
+        };
+        document.getElementById('current-mode-badge').innerText = titles[mode];
+        
+        // Clear history on mode change
+        chatHistory = [];
+        document.getElementById('chat-messages').innerHTML = `
+            <div class="d-flex mb-3">
+                <div class="bg-white p-3 rounded shadow-sm">
+                    <strong>AI Coach:</strong> Switched to ${titles[mode]} mode. Let's get started. 
+                    ${mode === 'career_trajectory' ? 'Where do you see yourself in 5 years? What are your ultimate career goals?' : ''}
+                    ${mode === 'summary' ? 'Tell me briefly about your top 3 professional achievements.' : ''}
+                </div>
+            </div>
+        `;
+        document.getElementById('draft-panel').classList.add('d-none');
+    }
+
+    async function sendMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        // Append user message
+        const chatBox = document.getElementById('chat-messages');
+        chatBox.innerHTML += `
+            <div class="d-flex mb-3 justify-content-end">
+                <div class="bg-primary text-white p-3 rounded shadow-sm">
+                    ${message}
+                </div>
+            </div>
+        `;
+        input.value = '';
+        input.disabled = true;
+        document.getElementById('send-btn').disabled = true;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        try {
+            const response = await fetch('/cv/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    history: chatHistory,
+                    mode: currentMode
+                })
+            });
+            
+            const data = await response.json();
+            let aiText = data.response;
+            
+            // Check for drafts
+            const draftMatch = aiText.match(/<draft>([\s\S]*?)<\/draft>/);
+            if (draftMatch) {
+                currentDraft = draftMatch[1].trim();
+                aiText = aiText.replace(/<draft>([\s\S]*?)<\/draft>/g, "<em>I've prepared a draft based on our conversation. You can review and save it from the side panel!</em>");
+                
+                document.getElementById('draft-content').innerText = currentDraft;
+                document.getElementById('draft-panel').classList.remove('d-none');
+            }
+            
+            // Update history
+            chatHistory.push({role: 'user', content: message});
+            chatHistory.push({role: 'model', content: data.response}); // keep original with tags in history
+            
+            // Append AI message
+            chatBox.innerHTML += `
+                <div class="d-flex mb-3">
+                    <div class="bg-white p-3 rounded shadow-sm border" style="white-space: pre-wrap;">
+                        <strong>AI Coach:</strong><br>${aiText}
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error:', error);
+            chatBox.innerHTML += `
+                <div class="d-flex mb-3">
+                    <div class="bg-danger text-white p-3 rounded shadow-sm">
+                        Sorry, there was an error connecting to the AI service.
+                    </div>
+                </div>
+            `;
+        }
+        
+        input.disabled = false;
+        document.getElementById('send-btn').disabled = false;
+        input.focus();
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    
+    async function saveDraft() {
+        if (!currentDraft) return;
+        
+        try {
+            const response = await fetch('/cv/api/save-draft', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    content: currentDraft,
+                    mode: currentMode
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                alert(data.message);
+                document.getElementById('draft-panel').classList.add('d-none');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to save draft.');
+        }
+    }
+
+    let recognition = null;
+    let isRecording = false;
+
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognitionAPI) {
+        recognition = new SpeechRecognitionAPI();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onstart = function() {
+            isRecording = true;
+            document.getElementById('mic-btn').classList.remove('btn-outline-secondary');
+            document.getElementById('mic-btn').classList.add('btn-danger');
+        };
+        
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            const inputField = document.getElementById('chat-input');
+            inputField.value = inputField.value ? inputField.value + ' ' + transcript : transcript;
+        };
+        
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error', event.error);
+            stopRecording();
+        };
+        
+        recognition.onend = function() {
+            stopRecording();
+        };
+    } else {
+        console.warn('Speech recognition not supported in this browser.');
+        document.getElementById('mic-btn').style.display = 'none';
+    }
+
+    function toggleSpeechRecognition() {
+        if (!recognition) return;
+        
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    }
+    
+    function stopRecording() {
+        isRecording = false;
+        document.getElementById('mic-btn').classList.add('btn-outline-secondary');
+        document.getElementById('mic-btn').classList.remove('btn-danger');
+    }
+</script>
+{% endblock %}

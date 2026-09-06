@@ -92,3 +92,4 @@ htmlcov/
 documents/*.html
 documents/*.pdf
 !documents/.gitkeep
+.env.production

@@ -29,6 +29,7 @@ class User(UserMixin, db.Model):
     publications = db.relationship('Publication', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     languages = db.relationship('Language', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     badges = db.relationship('Badge', backref='user', lazy='dynamic', cascade='all, delete-orphan')
+    referees = db.relationship('Referee', backref='user', lazy='dynamic', cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -56,6 +57,7 @@ class Profile(db.Model):
     github_url = db.Column(db.String(200))
     website_url = db.Column(db.String(200))
     orcid_id = db.Column(db.String(50))
+    career_aspirations = db.Column(db.Text)
 
 
 class WorkExperience(db.Model):
@@ -156,3 +158,19 @@ class Badge(db.Model):
     badge_url = db.Column(db.String(500))
     description = db.Column(db.Text)
     category = db.Column(db.String(50))
+
+
+class Referee(db.Model):
+    """Referees / References"""
+    __tablename__ = 'referees'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    title = db.Column(db.String(200))
+    company = db.Column(db.String(200))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    relationship = db.Column(db.String(200))
+    order = db.Column(db.Integer, default=0)
+
